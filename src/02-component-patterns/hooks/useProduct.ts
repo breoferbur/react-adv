@@ -1,15 +1,36 @@
-import { useState } from 'react';
+import { Product } from './../interfaces/interfaces';
+import { useEffect, useRef, useState } from 'react';
+import { OnChangeArgs } from '../interfaces/interfaces';
 
-export const useProduct = () => {
-    const [counter, setCounter] = useState(0);
+interface useProductArgs {
+    product: Product;
+    value?: number;
+    onChange?: (args: OnChangeArgs) => void
+}
+
+export const useProduct = ({ product, value = 0, onChange }: useProductArgs) => {
+    const [counter, setCounter] = useState(value);
+
+    const isControlled = useRef(!!onChange);
+
+    // Sincroniza el valor del contador de producto -> carrito
+    useEffect(() => {
+      setCounter(value);
+    }, [value]);
+    
 
     const increaseBy = (value: number) => {
-        setCounter( prev => Math.max(prev + value, 0));
-    }
+        if (isControlled.current) {
+            return onChange!({product, count: value});
+        }
+        const newValue = Math.max(counter + value, 0);
+        setCounter(newValue);
+        onChange && onChange({ product, count: newValue });
+    };
 
     return {
         counter,
         increaseBy,
-    }
+    };
 };
 
